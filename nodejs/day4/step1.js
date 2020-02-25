@@ -12,25 +12,37 @@ const fs = require('fs');
 */
 
 function convertToArray(l) {
-  return _.map(l.toString().split(''), fp.parseInt(10))
+  return l.toString().split('');
 }
 
-function calcTrueRange(range) {
-  if (range[0] > range[1]) return [-1,-1];
-  return _.flow(
-    () => range,
-    (a) => _.map(a, convertToArray),
-    (b) => _.map(b, (list) => {
-      let finalL = list;
-      for (let ind = finalL.length - 2; ind >= 0; ind --) {
-        if (finalL[ind] > finalL[ind+1]) {
-          finalL[ind] -= 1;
-          finalL[ind+1] = 9;
-          ind = finalL.length - 2; // This obviously scales horribly..."cross that bridge"
-        }
-      }
-      return finalL;
-    })
+// This whole thing is a bloody wreck...
+function hasTwoSame(l) {
+  return l.some((v, k) => {
+    if ((k == l.length - 2 && v == l[k + 1] && v != l[k - 1])) {
+      return true;
+    } else if (k == 0 && v == l[k+1] && v!=l[k+2]) {
+      return true;
+    } else if (k < l.length - 2 && v == l[k+1] && v != l[k-1] && v != l[k+2]) {
+      return true;
+    } else {
+      return false;
+    }
+  })
+}
+
+function allAscendingEqual(l) {
+  return l.every((v, k) => {
+    return (k == l.length - 1 || v <= l[k+1]);
+  });
+}
+const parseInt10 = fp.parseInt(10);
+function dumbSolution(range) {
+  return fp.flow(
+    () => _.range(parseInt10(range[0]), parseInt10(range[1]) + 1),
+    fp.map(it => convertToArray(it)),
+    fp.filter(allAscendingEqual),
+    fp.filter(hasTwoSame),
+    (l) => l.length
   )();
 }
 
@@ -42,4 +54,4 @@ function logStringy(v) {
   )
 }
 
-logStringy(calcTrueRange('357253-892942'.split('-')))
+console.log(dumbSolution('357253-892942'.split('-')));
